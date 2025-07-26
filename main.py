@@ -15,21 +15,30 @@ def transform_data1(data):
     Converts data from format 1 (data-1.json) to the unified format (data-result.json).
     Expected format:
     {
-        "device": "sensor-1",
-        "timestamp": "2025-07-26T10:15:30Z",
-        "reading": 123.45
+        "deviceID": "dh28dslkja",
+        "deviceType": "LaserCutter",
+        "timestamp": 1624445837783,
+        "location": "japan/tokyo/keiyō-industrial-zone/daikibo-factory-meiyo/section-1",
+        "operationStatus": "healthy",
+        "temp": 22
     }
     Output format:
     {
-        "deviceId": "sensor-1",
-        "timestamp": 1753521330000,
-        "value": 123.45
+        "deviceId": "dh28dslkja",
+        "deviceType": "LaserCutter",
+        "timestamp": 1624445837783,
+        "location": "japan/tokyo/keiyō-industrial-zone/daikibo-factory-meiyo/section-1",
+        "status": "healthy",
+        "temperature": 22
     }
     """
     return {
-        "deviceId": data["device"],
-        "timestamp": iso_to_millis(data["timestamp"]),
-        "value": data["reading"]
+        "deviceId": data["deviceID"],
+        "deviceType": data["deviceType"],
+        "timestamp": data["timestamp"],
+        "location": data["location"],
+        "status": data["operationStatus"],
+        "temperature": data["temp"]
     }
 
 
@@ -38,21 +47,39 @@ def transform_data2(data):
     Converts data from format 2 (data-2.json) to the unified format (data-result.json).
     Expected format:
     {
-        "id": "sensor-2",
-        "time": 1753521330000,
-        "val": 98.76
+        "device": {
+            "id": "dh28dslkja",
+            "type": "LaserCutter"
+        },
+        "timestamp": "2021-06-23T10:57:17.783Z",
+        "country": "japan",
+        "city": "tokyo",
+        "area": "keiyō-industrial-zone",
+        "factory": "daikibo-factory-meiyo",
+        "section": "section-1",
+        "data": {
+            "status": "healthy",
+            "temperature": 22
+        }
     }
     Output format:
     {
-        "deviceId": "sensor-2",
-        "timestamp": 1753521330000,
-        "value": 98.76
+        "deviceId": "dh28dslkja",
+        "deviceType": "LaserCutter", 
+        "timestamp": 1624445837783,
+        "location": "japan/tokyo/keiyō-industrial-zone/daikibo-factory-meiyo/section-1",
+        "status": "healthy",
+        "temperature": 22
     }
     """
+    location = f"{data['country']}/{data['city']}/{data['area']}/{data['factory']}/{data['section']}"
     return {
-        "deviceId": data["id"],
-        "timestamp": data["time"],
-        "value": data["val"]
+        "deviceId": data["device"]["id"],
+        "deviceType": data["device"]["type"],
+        "timestamp": iso_to_millis(data["timestamp"]),
+        "location": location,
+        "status": data["data"]["status"],
+        "temperature": data["data"]["temperature"]
     }
 
 
