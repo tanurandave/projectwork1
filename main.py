@@ -4,9 +4,15 @@ from datetime import datetime
 
 def iso_to_millis(iso_string):
     """
-    Converts an ISO timestamp string (e.g., '2025-07-26T10:15:30Z') to milliseconds since epoch.
+    Converts an ISO timestamp string to milliseconds since epoch.
+    Handles both formats: '2025-07-26T10:15:30Z' and '2021-06-23T10:57:17.783Z'
     """
-    dt = datetime.strptime(iso_string, "%Y-%m-%dT%H:%M:%SZ")
+    try:
+        # Try format with milliseconds first
+        dt = datetime.strptime(iso_string, "%Y-%m-%dT%H:%M:%S.%fZ")
+    except ValueError:
+        # Fall back to format without milliseconds
+        dt = datetime.strptime(iso_string, "%Y-%m-%dT%H:%M:%SZ")
     return int(dt.timestamp() * 1000)
 
 
