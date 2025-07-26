@@ -2,103 +2,81 @@ import json
 from datetime import datetime
 
 
+# Helper function: Convert ISO 8601 timestamp to milliseconds
 def iso_to_millis(iso_string):
     """
-    Converts an ISO timestamp string to milliseconds since epoch.
-    Handles both formats: '2025-07-26T10:15:30Z' and '2021-06-23T10:57:17.783Z'
+    Converts an ISO timestamp string (e.g., '2025-07-26T10:15:30Z') to milliseconds since epoch.
     """
-    try:
-        # Try format with milliseconds first
-        dt = datetime.strptime(iso_string, "%Y-%m-%dT%H:%M:%S.%fZ")
-    except ValueError:
-        # Fall back to format without milliseconds
-        dt = datetime.strptime(iso_string, "%Y-%m-%dT%H:%M:%SZ")
+    dt = datetime.strptime(iso_string, "%Y-%m-%dT%H:%M:%SZ")
     return int(dt.timestamp() * 1000)
 
 
+# IMPLEMENT: Transform Format 1 (data-1.json) to the unified format
 def transform_data1(data):
     """
     Converts data from format 1 (data-1.json) to the unified format (data-result.json).
     Expected format:
     {
-        "deviceID": "dh28dslkja",
-        "deviceType": "LaserCutter",
-        "timestamp": 1624445837783,
-        "location": "japan/tokyo/keiyō-industrial-zone/daikibo-factory-meiyo/section-1",
-        "operationStatus": "healthy",
-        "temp": 22
+        "device": "sensor-1",
+        "timestamp": "2025-07-26T10:15:30Z",
+        "reading": 123.45
     }
     Output format:
     {
-        "deviceId": "dh28dslkja",
-        "deviceType": "LaserCutter",
-        "timestamp": 1624445837783,
-        "location": "japan/tokyo/keiyō-industrial-zone/daikibo-factory-meiyo/section-1",
-        "status": "healthy",
-        "temperature": 22
+        "deviceId": "sensor-1",
+        "timestamp": 1753521330000,
+        "value": 123.45
     }
     """
     return {
-        "deviceId": data["deviceID"],
-        "deviceType": data["deviceType"],
-        "timestamp": data["timestamp"],
-        "location": data["location"],
-        "status": data["operationStatus"],
-        "temperature": data["temp"]
+        "deviceId": data["device"],
+        "timestamp": iso_to_millis(data["timestamp"]),
+        "value": data["reading"]
     }
 
 
+# IMPLEMENT: Transform Format 2 (data-2.json) to the unified format
 def transform_data2(data):
     """
     Converts data from format 2 (data-2.json) to the unified format (data-result.json).
     Expected format:
     {
-        "device": {
-            "id": "dh28dslkja",
-            "type": "LaserCutter"
-        },
-        "timestamp": "2021-06-23T10:57:17.783Z",
-        "country": "japan",
-        "city": "tokyo",
-        "area": "keiyō-industrial-zone",
-        "factory": "daikibo-factory-meiyo",
-        "section": "section-1",
-        "data": {
-            "status": "healthy",
-            "temperature": 22
-        }
+        "id": "sensor-2",
+        "time": 1753521330000,
+        "val": 98.76
     }
     Output format:
     {
-        "deviceId": "dh28dslkja",
-        "deviceType": "LaserCutter", 
-        "timestamp": 1624445837783,
-        "location": "japan/tokyo/keiyō-industrial-zone/daikibo-factory-meiyo/section-1",
-        "status": "healthy",
-        "temperature": 22
+        "deviceId": "sensor-2",
+        "timestamp": 1753521330000,
+        "value": 98.76
     }
     """
-    location = f"{data['country']}/{data['city']}/{data['area']}/{data['factory']}/{data['section']}"
     return {
-        "deviceId": data["device"]["id"],
-        "deviceType": data["device"]["type"],
-        "timestamp": iso_to_millis(data["timestamp"]),
-        "location": location,
-        "status": data["data"]["status"],
-        "temperature": data["data"]["temperature"]
+        "deviceId": data["id"],
+        "timestamp": data["time"],
+        "value": data["val"]
     }
+
+
+# DO NOT EDIT BELOW THIS LINE
+# ---------------------------
 
 
 def main():
+    # Load the input files
     with open("data-1.json") as f1, open("data-2.json") as f2:
         data1 = json.load(f1)
         data2 = json.load(f2)
 
+    # Transform both inputs into the unified format
     result1 = transform_data1(data1)
     result2 = transform_data2(data2)
 
+    # Combine results into a list
     combined_result = [result1, result2]
 
+    # Output the result in JSON format
     with open("result.json", "w") as outfile:
         json.dump(combined_result, outfile, indent=4)
 
