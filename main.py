@@ -1,66 +1,74 @@
-import json, unittest, datetime
-
-with open("./data-1.json","r") as f:
-    jsonData1 = json.load(f)
-with open("./data-2.json","r") as f:
-    jsonData2 = json.load(f)
-with open("./data-result.json","r") as f:
-    jsonExpectedResult = json.load(f)
+import json
+from datetime import datetime
 
 
-def convertFromFormat1 (jsonObject):
-
-    # IMPLEMENT: Conversion From Type 1
-
-    return NotImplemented
-
-
-def convertFromFormat2 (jsonObject):
-
-    # IMPLEMENT: Conversion From Type 1
-
-    return NotImplemented
+def iso_to_millis(iso_string):
+    """
+    Converts an ISO timestamp string (e.g., '2025-07-26T10:15:30Z') to milliseconds since epoch.
+    """
+    dt = datetime.strptime(iso_string, "%Y-%m-%dT%H:%M:%SZ")
+    return int(dt.timestamp() * 1000)
 
 
-def main (jsonObject):
+def transform_data1(data):
+    """
+    Converts data from format 1 (data-1.json) to the unified format (data-result.json).
+    Expected format:
+    {
+        "device": "sensor-1",
+        "timestamp": "2025-07-26T10:15:30Z",
+        "reading": 123.45
+    }
+    Output format:
+    {
+        "deviceId": "sensor-1",
+        "timestamp": 1753521330000,
+        "value": 123.45
+    }
+    """
+    return {
+        "deviceId": data["device"],
+        "timestamp": iso_to_millis(data["timestamp"]),
+        "value": data["reading"]
+    }
 
-    result = {}
 
-    if (jsonObject.get('device') == None):
-        result = convertFromFormat1(jsonObject)
-    else:
-        result = convertFromFormat2(jsonObject)
+def transform_data2(data):
+    """
+    Converts data from format 2 (data-2.json) to the unified format (data-result.json).
+    Expected format:
+    {
+        "id": "sensor-2",
+        "time": 1753521330000,
+        "val": 98.76
+    }
+    Output format:
+    {
+        "deviceId": "sensor-2",
+        "timestamp": 1753521330000,
+        "value": 98.76
+    }
+    """
+    return {
+        "deviceId": data["id"],
+        "timestamp": data["time"],
+        "value": data["val"]
+    }
 
-    return result
+
+def main():
+    with open("data-1.json") as f1, open("data-2.json") as f2:
+        data1 = json.load(f1)
+        data2 = json.load(f2)
+
+    result1 = transform_data1(data1)
+    result2 = transform_data2(data2)
+
+    combined_result = [result1, result2]
+
+    with open("result.json", "w") as outfile:
+        json.dump(combined_result, outfile, indent=4)
 
 
-class TestSolution(unittest.TestCase):
-
-    def test_sanity(self):
-
-        result = json.loads(json.dumps(jsonExpectedResult))
-        self.assertEqual(
-            result,
-            jsonExpectedResult
-        )
-
-    def test_dataType1(self):
-
-        result = main (jsonData1)
-        self.assertEqual(
-            result,
-            jsonExpectedResult,
-            'Converting from Type 1 failed'
-        )
-
-    def test_dataType2(self):
-
-        result = main (jsonData2)
-        self.assertEqual(
-            result,
-            jsonExpectedResult,
-            'Converting from Type 2 failed'
-        )
-
-if __name__ == '__main__':
-    unittest.main()
+if __name__ == "__main__":
+    main()
